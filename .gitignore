@@ -1,0 +1,10 @@
+**/lib
+**/include
+**/bin
+**/RCS
+**/.Python
+**/.idea
+*.pyc
+*,v
+*.xml
+*.DS_Store
