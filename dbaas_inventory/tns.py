@@ -36,19 +36,15 @@ def get_tns_entries (p_tns_pattern,p_tns_file, p_debug):
 
 def get_primary_tns(p_tns_names_list, p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin,p_debug):
     l_tns_name=''
-    m.message("DEBUG : get_primary_tns 0, {0}".format(p_tns_names_list),p_debug)
     for tns_name in p_tns_names_list:
         queryResult, errorMessage = exec_sql(p_connectString + tns_name, p_sqlCommand,p_oracle_home, p_tns_admin,p_debug)
-        m.message("DEBUG : get_primary_tns 1, {0}".format(queryResult),p_debug)
-        m.message("DEBUG : get_primary_tns 2, {0}".format(errorMessage),p_debug)
         if queryResult.strip() == 'PRIMARY' and 'ORA-' not in queryResult and 'ORA-' not in errorMessage:
             l_tns_name = tns_name
-            m.message("DEBUG : get_primary_tns 3, {0}".format(l_tns_name),p_debug)
-    if l_tns_name is not None and l_tns_name != "" and l_tns_name:
+    if l_tns_name is not None and l_tns_name != "":
         m.message("INFO : get_primary_tns 1, {0}".format(l_tns_name),p_debug)
         return l_tns_name
     else:
-        print "ERROR: get_primary_tns 2 : {0}  no primary ".format(l_tns_name)
+        print "ERROR: get_primary_tns 2 : {0}  no primary, :{1}".format(l_tns_name, str(e))
         exit(1)
 
 
@@ -70,15 +66,13 @@ def exec_sql(p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin,p_debug):
         session.stdin.write(p_sqlCommand)
         return session.communicate()
     except Exception as e:
-        print "ERROR: exec_sql 1 : {0}  sql error {1}, {2}".format(p_connectString,p_sqlCommand, str(e))
+        print "ERROR: exec_sql 1 : {0}  sql error {1}, :{2}".format(p_connectString,p_sqlCommand, str(e))
         exit(1)
 
 
 
 def implement_sql_action(p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin, p_action, p_tns_name,p_debug):
         queryResult, errorMessage = exec_sql(p_connectString, p_sqlCommand,p_oracle_home, p_tns_admin, p_debug)
-        m.message("DEBUG : implement_sql_action 1, {0}".format(queryResult),p_debug)
-        m.message("DEBUG : implement_sql_action 2, {0}".format(errorMessage),p_debug)
         if 'ORA-' not in errorMessage or 'ORA-' not in queryResult:
             print "INFO : implement_sql_action 1, {0} {1}: {2}".format(p_tns_name,p_action,queryResult.strip())
         else:

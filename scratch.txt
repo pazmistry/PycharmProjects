@@ -1,0 +1,184 @@
+
+FROM TNS 
+ primary, hostname, dbname
+ standby, hostname, dbname
+ 
+SRVCTL 
+	srvctl stop database
+	srvtcl status database
+	srvctl start database
+	srvctl stop service
+	srvctl start service
+
+
+DGMGRL HEALTHCHECK SCRIPT
+	dataguard lag
+	transport lag
+	errors 
+	primary
+	standby
+	ready to failover
+
+
+#!/usr/bin/env python 
+ import sys, os, time, threading, subprocess,datetime,re
+  command = 'su - emadba -c \'dgmgrl -silent sys/password@emadb "show configuration" \'' 
+	dgstatus = subprocess.Popen(command,stdout=subprocess.PIPE,shell=True) 
+	output = dgstatus.communicate()[0].strip().split("\n") 
+	prev = "" 
+	print prev 
+	for x in output: 
+		prev = x
+
+
+
+# Holds the previous line
+prev_line = None
+for line in open(<something>, 'r'):
+    if is_ora_line(line) and prev_line is not None:
+        do_something_with_database_line(prev_line)
+    # Remember now the current line as the previous line
+    prev_line = line
+		
+		
+		
+If you can get the error as a string, you can use string.
+count("\n") to get the count of newline characters. 
+You can also use string.split("\n") which returns an array of lines of your string. 
+array[-1] is the last line in the array, 
+and array[-2] is the pre-last one.
+		
+		
+		
+Let’s Start the Demo:-
+
+Step1:-Check the Primary Database
+
+Use the SHOW DATABASE VERBOSE command to check the state, health, and properties of the primary database
+
+DGMGRL> SHOW DATABASE VERBOSE ‘prime’;
+Database – prime
+Role: PRIMARY
+Intended State: TRANSPORT-ON
+Instance(s):
+prime
+Properties:
+DGConnectIdentifier = ‘prime’
+ObserverConnectIdentifier = ”
+LogXptMode = ‘ASYNC’
+RedoRoutes = ”
+DelayMins = ‘0’
+Binding = ‘optional’
+MaxFailure = ‘0’
+MaxConnections = ‘1’
+ReopenSecs = ‘300’
+NetTimeout = ’30’
+RedoCompression = ‘DISABLE’
+LogShipping = ‘ON’
+PreferredApplyInstance = ”
+ApplyInstanceTimeout = ‘0’
+ApplyLagThreshold = ‘0’
+TransportLagThreshold = ‘0’
+TransportDisconnectedThreshold = ’30’
+ApplyParallel = ‘AUTO’
+StandbyFileManagement = ‘AUTO’
+ArchiveLagTarget = ‘0’
+LogArchiveMaxProcesses = ‘4’
+LogArchiveMinSucceedDest = ‘1’
+DbFileNameConvert = ‘/u01/app/oracle/oradata/STAND/datafile, /u01/app/oracle/oradata/PRIME/datafile’
+LogFileNameConvert = ‘/u01/app/oracle/oradata/STAND/onlinelog, /u01/app/oracle/oradata/PRIME/onlinelog’
+FastStartFailoverTarget = ”
+InconsistentProperties = ‘(monitor)’
+InconsistentLogXptProps = ‘(monitor)’
+SendQEntries = ‘(monitor)’
+LogXptStatus = ‘(monitor)’
+RecvQEntries = ‘(monitor)’
+StaticConnectIdentifier = ‘(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=192.168.1.24)(PORT=1539))(CONNECT_DATA=(SERVICE_NAME=PRIME_DGMGRL)(INSTANCE_NAME=prime)(SERVER=DEDICATED)))’
+StandbyArchiveLocation = ‘USE_DB_RECOVERY_FILE_DEST’
+AlternateLocation = ”
+LogArchiveTrace = ‘0’
+LogArchiveFormat = ‘%t_%s_%r.dbf’
+TopWaitEvents = ‘(monitor)’
+Database Status:
+SUCCESS
+
+Step2:-Check the Standby Database That is the Target of the Switchover
+
+Use the SHOW DATABASE command to check the status of the standby database that is the target of the switchover
+
+DGMGRL> SHOW DATABASE ‘stand’;
+Database – stand
+Role: PHYSICAL STANDBY
+Intended State: APPLY-ON
+Transport Lag: 0 seconds (computed 0 seconds ago)
+Apply Lag: 0 seconds (computed 0 seconds ago)
+Average Apply Rate: 1.00 KByte/s
+Real Time Query: OFF
+Instance(s):
+stand
+Database Status:
+SUCCESS
+
+Step3:-Confirm That the Database Is Ready for a Role Change
+
+12c New Feature
+
+Prior to performing a role change, you can use the VALIDATE DATABASE command to perform
+an exhaustive set of checks on the database to confirm that it is ready for a role change.
+
+DGMGRL> VALIDATE DATABASE ‘prime’;
+Database Role: Primary database
+Ready for Switchover: Yes
+Flashback Database Status:
+prime: Off
+DGMGRL> VALIDATE DATABASE ‘stand’;
+Database Role: Physical standby database
+Primary Database: prime
+Ready for Switchover: Yes
+Ready for Failover: Yes (Primary Running)
+Flashback Database Status:
+prime: Off
+stand: Off
+
+DGMGRL> SHOW CONFIGURATION;
+Configuration – hari
+Protection Mode: MaxPerformance
+Members:
+prime – Primary database
+stand – Physical standby database
+Fast-Start Failover: DISABLED
+Configuration Status:
+SUCCESS (status updated 10 seconds ago)
+
+Step4:-Issue the Switchover Command
+
+Issue the SWITCHOVER command to swap the roles of the primary and standby databases
+
+DGMGRL> switchover to ‘stand’;
+Performing switchover NOW, please wait…
+Operation requires a connection to instance “stand” on database “stand”
+Connecting to instance “stand”…
+Connected as SYSDBA.
+New primary database “stand” is opening…
+Operation requires start up of instance “prime” on database “prime”
+Starting instance “prime”…
+ORACLE instance started.
+Database mounted.
+Switchover succeeded, new primary is “stand”
+
+Step5:-Show the Configuration
+
+DGMGRL> SHOW CONFIGURATION;
+Configuration – hari
+Protection Mode: MaxPerformance
+Members:
+stand – Primary database   (Now primary database is Stand)
+prime – Physical standby database
+Fast-Start Failover: DISABLED
+Configuration Status:
+SUCCESS (status updated 28 seconds ago)
+
+Successfully Switchover completed using DGMGRL Utlility
+
+
+
