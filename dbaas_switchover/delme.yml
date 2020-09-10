@@ -1,0 +1,194 @@
+---
+#ansible-playbook -i hosts.ini  --tags precheck delme.yml
+- hosts: primary_host
+  remote_user: oracle
+  gather_facts: false
+  vars:
+    u01_size_gb: 10
+    tmp_size_gb: 1
+    oracle_base: /u01/app/oracle/
+    oracle_home: /u01/app/oracle/product/version/db_1
+    ld_library_path: "{{ oracle_home }}/lib"
+    tmp_base: /tmp
+    oratab_name: /etc/oratab
+    script_dir: /u01/app/oracle/scripts
+    sid_pattern: orcl
+    db_unique_name: template
+    #  remote_user: oracle
+    ora_command: startup
+
+# validate incoming values
+# sid_pattern
+# Now get : sid_name, db_unique_name, primary_name, standby_name
+# convert global variables to local variables
+
+  tasks:
+  - name: check oracle_home free disk space
+    action: shell df -k {{ oracle_base }} | awk 'END { print $4 }'
+    register: u01size
+    failed_when: u01size.stdout|int <  u01_size_gb  * 1024 * 1024 
+    changed_when: False
+    tags:
+      - precheck
+
+  - name: check tmp free disk space
+    action: shell df -k {{ tmp_base }} | awk 'END { print $4 }'
+    register: tmpsize
+    failed_when: tmpsize.stdout|int < tmp_size_gb * 1024 * 1024
+    changed_when: False
+    tags:
+      - precheck
+
+  - name: create directory for installation files
+    action: file dest={{ script_dir }} state=directory owner=oracle group=dba
+    tags:
+      - precheck
+
+  - name: copy sql db scripts
+    copy: src=files/{{ item }} dest={{ script_dir }} owner=oracle group=oinstall mode=0644
+    with_items:
+     - db_details.sql
+     - db_details.sh
+    tags:
+      - precheck
+      - test
+
+
+
+  - name: instance running
+    action: shell ps -aef | grep pmon | awk -F_ '{print $3}' | grep -v "^$"  | sort -n | sed s/" "//g | grep "{{ sid_pattern }}"
+    register: oracle_sid
+    failed_when:  oracle_sid.stdout|trim  == '' or 'orcl' not in oracle_sid.stdout
+    changed_when: False
+    tags:
+      - precheck
+      - test
+
+  - set_fact:
+      oracle_sid2 = "{{ pmon_out.stdout }}"
+
+
+  - name: display oracle_sid
+    debug:
+      msg:
+        - " please display {{ oracle_sid.stdout }}"
+    tags:
+      - test
+      - precheck
+
+
+  - name: Execute sql db_details
+    shell: echo "hello"
+    environment:
+      ORACLE_HOME: "{{oracle_home}}"
+      LD_LIBRARY_PATH: "{{ld_library_path}}"
+      PATH: "{{oracle_home}}/bin"
+      args:
+        chdir: "{{script_dir}}"
+    tags:
+      - postcheck
+      - test2
+
+  #$ORACLE_HOME/bin/sqlplus -S "/ as sysdba" @db_details.sql
+  - name: Execute shell sql db_details2
+    shell: |
+      cd "{{ script_dir }}"
+      echo $ORACLE_HOME $ORACLE_SID $LD_LIBRARY_PATH $PATH $ORAENV_ASK $PWD
+ #     source /usr/local/bin/oraenv
+      #./db_details.sh
+    register: db_details
+    environment:
+      ORACLE_SID: "{{oracle_sid.stdout}}"
+      ORACLE_HOME: "{{oracle_home}}"
+      LD_LIBRARY_PATH: "{{ld_library_path}}"
+      PATH: "{{oracle_home}}/bin"
+      ORAENV_ASK: "NO"
+      args:
+        chdir: "{{ script_dir }}"
+    tags:
+      - disable
+
+  - name: Execute shell sql db_detail3
+    script:
+      cmd: ./db_details.sh orclcdb
+      chdir: "{{ script_dir }}"
+    register: db_details
+    tags:
+      - test
+
+  - debug:
+      msg:
+        - " please display {{ db_details.stdout }}"
+    tags:
+      - test
+      - precheck
+
+
+
+###############################################################################
+  -
+  - name: patch conflict detection
+    action: shell export ORACLE_HOME={{ oracle_home }}; cd {{ patch_dir }}/18522509; $ORACLE_HOME/OPatch/opatch prereq CheckConflictAgainstOHWithDetail -ph ./
+    register: conflict_detection
+    failed_when: "'Prereq \"checkConflictAgainstOHWithDetail\" passed.' not in conflict_detection.stdout"
+    tags:
+      - disabled
+
+
+
+
+
+  - name: db details
+    shell: $ORACLE_HOME/bin/sqlplus -s username/password@connect @table.sql
+    environment:
+      ORACLE_HOME: "{{oracle_home_path}}"
+      LD_LIBRARY_PATH: "{{ld_library_path}}"
+      PATH: "{{bin_path}}"
+      args:
+        chdir: "{{sql_path}}"
+    tags:
+      - disable
+
+  - name: shutdown db instances
+    action: shell cd {{ patch_dir }} ; export ORACLE_HOME={{ oracle_home }}; export ORACLE_SID={{ sid_name }} ;export ORAENV_ASK=NO; . oraenv ; $ORACLE_HOME/bin/sqlplus -S "/ as sysdba"  @{{ ora_command }} | tail -2 | head -1
+    register: startup_output
+    failed_when: "'READ WRITE' not in startup_output.stdout"
+    tags:
+      - patch 
+
+  - name: check db instances
+    action: shell cd {{ patch_dir }} ; export ORACLE_HOME={{ oracle_home }}; export ORACLE_SID={{ sid_name }} ;export ORAENV_ASK=NO; . oraenv ; $ORACLE_HOME/bin/sqlplus -S "/ as sysdba"  @{{ ora_command }} | tail -2 | head -1
+    register: check_inst_output
+    failed_when: "'READ WRITE' not in check_inst_output.stdout"
+    tags:
+      - patch 
+
+
+
+  - name: sids present on host
+    action: shell grep -v "#" {{ oratab_name }} | grep -v ^$ | awk -F":" '{print $1}'
+    register: inst_name
+    tags:
+      - disabled
+ 
+  - debug: 
+     vars: inst_name
+     tags:
+      - disabled
+
+  - name: setting command to startup
+    set_fact:
+     ora_command: "startup"
+
+  - name: startup the instances
+    action: shell cd {{ patch_dir }} ; export ORACLE_HOME={{ oracle_home }}; export ORACLE_SID={{ sid_name }} ;export ORAENV_ASK=NO; . oraenv ; $ORACLE_HOME/bin/sqlplus -S "/ as sysdba"  @{{ ora_command }} | tail -2 | head -1
+    register: startup_output
+    failed_when: "'READ WRITE' not in startup_output.stdout"
+    tags:
+      - postpatch 
+
+  - name: clean up install directory
+    file: path={{ patch_dir }} state=absent
+    tags:
+      - disabled
+
