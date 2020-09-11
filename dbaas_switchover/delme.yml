@@ -47,8 +47,8 @@
   - name: copy sql db scripts
     copy: src=files/{{ item }} dest={{ script_dir }} owner=oracle group=oinstall mode=0644
     with_items:
-     - db_details.sql
      - db_details.sh
+     - db_details.sql
     tags:
       - precheck
       - test
@@ -118,7 +118,7 @@
 
   - debug:
       msg:
-        - " please display {{ db_details.stdout }}"
+        - "{{ db_details.stdout }}"
     tags:
       - test
       - precheck
