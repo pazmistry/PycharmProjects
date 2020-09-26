@@ -1,9 +1,8 @@
 **/lib
 **/include
-**/bin
-**/RCS
 **/.Python
 **/.idea
+**/bin
 *.pyc
 *,v
 *.xml

@@ -3,20 +3,16 @@
     "_date": "$Date: 2020/08/28 07:10:50 $",
     "oraUserAction":
     {
-        "unlock": {
-            "user_sql_implement": "alter user deploy_user account unlock;",
+        "drop": {
+            "user_sql_implement": "drop restore point {0};",
             "user_sql_check":"DBA_DATA_PUMP_DIR"
         },
-        "lock": {
-            "user_sql_implement": "alter user deploy_user account lock;",
-            "user_sql_check":"False"
-        },
-        "reset": {
-            "user_sql_implement": "alter user {0} identified by {2};",
+        "create": {
+            "user_sql_implement": "create restore point {0} guarantee flashback database;",
             "user_sql_check":"False"
         },
         "check": {
-            "user_sql_implement": "set heading off \n select account_status from dba_users where username='DEPLOY_USER';",
+            "user_sql_implement": "set heading off \n select name from v$restore_point order by RESTORE_POINT_TIME;",
             "user_sql_check":"False"
         },
         "user_default": "DEPLOY_USER",
@@ -28,15 +24,15 @@
         "tns_file":"tnsnames.ora",
         "tmpdir":"/tmp",
         "debug_level": 1,
-        "valid_action_list": ["unlock","lock","reset","check"],
+        "valid_action_list": ["drop","create","check"],
         "valid_db_list": ["eds","rmb","bie","cor","dst","och","odi"],
         "valid_type_list": ["pt1","pt2","pa1","ot1","sc1","mi1","pt1a","pt1b"],
         "action": "none",
         "db": "none",
         "type":"none",
         "environment": "-ppe-",
-        "sql_connect_string": "system/oracle@",
-        "sql_connect_string_wallet": "/@",
+        "sql_connect_string": "svc_automation/oracle@{0} as sysdba",
+        "sql_connect_string_wallet": "/@{0} as sysdba",
         "sql_database_role": "set heading off \n select database_role from v$database;"
     }
 }

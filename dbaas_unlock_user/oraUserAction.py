@@ -1,7 +1,7 @@
 #/usr/bin/python
 ############################################
 #        $Author: pmistry $                     $RCSfile: oraUserAction.py,v $
-#        $Date: 2020/08/30 07:37:16 $           $Revision: 1.12 $
+#        $Date: 2020/09/22 20:22:54 $           $Revision: 1.13 $
 #        Python 3.7
 ############################################
 # usage :  ./oraUserAction.py --help
@@ -14,10 +14,9 @@
 PREREQUISTE
  All tns wallet connections must be set up first
 '''
-import sys, errno
+
 import argparse
 import json
-import string
 import os
 from datetime import datetime
 
@@ -32,7 +31,7 @@ def getInputArgs():
     parser.add_argument("--debug",  "-d", help="optional, Set debug mode",default="no")
     parser.add_argument("--action", "-a", help="mandatory, values[unlock|lock|reset|check]")
     parser.add_argument("--db",  "-s", help="mandatory, values[eds|rmb|bie|cor|dst|och]odi]")
-    parser.add_argument("--type", "-t", help="mandatory, values[pt1|pt2|pa1|ot1|sc1|mi1|pt1a]pt1b]")
+    parser.add_argument("--type", "-t", help="mandatory, values[pt1|pt2|pa1|ot1|sc1|mi1]")
     args = parser.parse_args()
     return args
 
@@ -42,9 +41,9 @@ def loadConfig(p_cfg_file):
     isValid = os.path.isfile(p_cfg_file)
     if isValid == True:
         ln_counter = 0
-#        print "INFO : loadConfig 1 : {0} exists: {1}".format(p_cfg_file, isValid)
+#        print "INFO : loadConfig.1 : {0} exists: {1}".format(p_cfg_file, isValid)
     else:
-        print "ERROR: loadConfig 2 : {0} does not exist, terminating :{1}".format(p_cfg_file, isValid)
+        print "ERROR: loadConfig.2 : {0} does not exist, terminating :{1}".format(p_cfg_file, isValid)
         exit(1)
     try:
         with open(p_cfg_file) as f:
@@ -59,17 +58,19 @@ def loadConfig(p_cfg_file):
 def validate_arguments(p_action, p_db, p_type, pd_cfgDict, p_debug):
     ''' Validate the input arguments   '''
     isValid = True
+    errMsg = ""
     if p_action is None or p_db is None:
         errMsg = "arg=none"
         isValid = False
     if isValid == True and p_action not in pd_cfgDict['oraUserAction']['valid_action_list']:
-        errMsg = errMsg + ",action = invalid"
+        #errMsg = errMsg + ",action = invalid"
+        errMsg += ",action = invalid"
         isValid = False
     if isValid == True and p_db not in pd_cfgDict['oraUserAction']['valid_db_list']:
-        errMsg = errMsg + ",environment = invalid"
+        errMsg += ",environment = invalid"
         isValid = False
     if isValid == True and p_type not in pd_cfgDict['oraUserAction']['valid_type_list']:
-        errMsg = errMsg + ",type = invalid"
+        errMsg += ",type = invalid"
         isValid = False
     if isValid == False:
         print "ERROR: validate_arguments 1, error message {0}!".format(errMsg)
@@ -107,15 +108,16 @@ if __name__ == '__main__':
 
 
     if args.config is None:
-        print ("ERROR: Incorrect arguments, see --help. Exiting")
+        #print ("ERROR: Incorrect arguments, see --help. Exiting")
+        m.message("ERROR: main.1, Incorrect arguments, see --help. Exiting",l_debug)
         exit(1)
     else:
         gd_cfgDict = loadConfig(lpath + args.config)
-        m.message("INFO : Started : %s".format(g_timestamp),l_debug)
+        m.message("INFO : main.2, Started : {0}".format(g_timestamp),l_debug)
         gd_cfgDict = validate_arguments(args.action.lower(),args.db.lower(),args.type.lower(),gd_cfgDict,l_debug)
         tns_names_list = t.get_tns_entries(gd_cfgDict['oraUserAction']['db'] + gd_cfgDict['oraUserAction']['environment'] + gd_cfgDict['oraUserAction']['type'] , gd_cfgDict['oraUserAction']['tns_admin']+gd_cfgDict['oraUserAction']['tns_file'],l_debug)
         tns_name = t.get_primary_tns(tns_names_list,gd_cfgDict['oraUserAction']['sql_connect_string'],gd_cfgDict['oraUserAction']['sql_database_role'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_debug)
-        t.implement_sql_action(gd_cfgDict['oraUserAction']['sql_connect_string']+tns_name,gd_cfgDict['oraUserAction'][l_action]['user_sql_implement'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_action,tns_name,l_debug)
+        queryResult = t.implement_sql_action(gd_cfgDict['oraUserAction']['sql_connect_string']+tns_name,gd_cfgDict['oraUserAction'][l_action]['user_sql_implement'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_action,tns_name,l_debug)
 
-m.message ("INFO : SUCCESSFULLY COMPLETED : %s ".format(datetime.now().time()),l_debug)
+m.message ("INFO : main.3, SUCCESSFULLY COMPLETED : {0} ".format(datetime.now().time()),l_debug)
 #

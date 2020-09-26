@@ -16,8 +16,11 @@
     db_unique_name: template
     #  remote_user: oracle
 
-# Now get : sid_name, db_unique_name, primary_name, standby_name
+
 # convert global variables to local variables
+# restart the dataabse
+# wait util online
+# check status
 
   tasks:
   - name: variables  check
@@ -111,8 +114,20 @@
     tags:
       - always
 
+######### this needs to be changed to standby lteral check ###############
   - name: db_details validation
     fail: msg="not primary"
     when: "'primary' not in database_role"
     tags:
       - always
+
+
+
+############# this needs to be ina new file in a role ################
+  - name: Execute sql script shutdown
+    script:
+      cmd: ./db_details.sh orclcdb
+      chdir: "{{ script_dir }}"
+    register: db_details
+    tags:
+      - test
