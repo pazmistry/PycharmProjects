@@ -24,6 +24,6 @@ select 'drop restore point "'||name||'";' from v$restore_point ;
 # ./oraRestorePoint.py -a check -s dst -d yes -t ot1 -c oraRestorePoint.json
 
 
-# ~/PycharmProjects/dbaas_restore_point/wrapper_restore_point.sh check ot1
+# ~/PycharmProjects/dbaas_restore_point/wrapper_restore_point.sh check ot1 paztest1
 
 
