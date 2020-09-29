@@ -17,6 +17,19 @@ Grant succeeded.
 
 
 
+21:06:33 CDB1:sys:470> alter session set "_ORACLE_SCRIPT"=true;
+
+Session altered.
+
+21:06:44 CDB1:sys:470> create user deploy_user identified by oracle;
+
+User created.
+
+
+
+
+
+
 
 select 'drop restore point "'||name||'";' from v$restore_point ;
 

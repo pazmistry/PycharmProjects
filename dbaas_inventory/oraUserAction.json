@@ -1,6 +1,6 @@
 {
-    "_comment": "$Revision: 1.12 $",
-    "_date": "$Date: 2020/08/28 07:10:50 $",
+    "_comment": "$Revision: 1.13 $",
+    "_date": "$Date: 2020/09/29 21:14:15 $",
     "oraUserAction":
     {
         "unlock": {
@@ -35,8 +35,8 @@
         "db": "none",
         "type":"none",
         "environment": "-ppe-",
-        "sql_connect_string": "system/oracle@",
-        "sql_connect_string_wallet": "/@",
+        "sql_connect_string": "system/oracle@{0}",
+        "sql_connect_string_wallet": "/@{0}",
         "sql_database_role": "set heading off \n select database_role from v$database;"
     }
 }

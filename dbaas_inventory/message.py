@@ -1,7 +1,7 @@
 
 ############################################
 #        $Author: pmistry $                     $RCSfile: message.py,v $
-#        $Date: 2020/09/25 22:40:46 $           $Revision: 1.3 $    Python 2.7
+#        $Date: 2020/09/29 21:14:41 $           $Revision: 1.4 $    Python 2.7
 ############################################
 from datetime import datetime
 

@@ -1,7 +1,7 @@
 #!/bin/ksh
 ############################################
-#        $Author: pmistry $                     $RCSfile: oraRestorePoint.py,v $
-#        $Date: 2020/09/26 16:31:08 $           $Revision: 1.3 $
+#        $Author: pmistry $                     $RCSfile: wrapper_restore_point.sh,v $
+#        $Date: 2020/09/29 21:16:19 $           $Revision: 1.2 $
 ############################################
 # ~/PycharmProjects/dbaas_restore_point/wrapper_restore_point.sh check ot1 <rp_name>
 #

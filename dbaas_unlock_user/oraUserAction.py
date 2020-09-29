@@ -99,9 +99,6 @@ if __name__ == '__main__':
     fileDir = os.path.dirname(os.path.realpath('__file__'))
     lpath = os.path.join(fileDir, '../dbaas_inventory/')
 
-#    lpath = os.getcwd() + '/'
-#    print lpath
-
     tns_names_list = []
     l_action = args.action.lower().strip()
     l_debug = args.debug.lower().strip()
@@ -113,11 +110,11 @@ if __name__ == '__main__':
         exit(1)
     else:
         gd_cfgDict = loadConfig(lpath + args.config)
-        m.message("INFO : main.2, Started : {0}".format(g_timestamp),l_debug)
+        m.message("INFO : main.2, Started ",l_debug)
         gd_cfgDict = validate_arguments(args.action.lower(),args.db.lower(),args.type.lower(),gd_cfgDict,l_debug)
         tns_names_list = t.get_tns_entries(gd_cfgDict['oraUserAction']['db'] + gd_cfgDict['oraUserAction']['environment'] + gd_cfgDict['oraUserAction']['type'] , gd_cfgDict['oraUserAction']['tns_admin']+gd_cfgDict['oraUserAction']['tns_file'],l_debug)
         tns_name = t.get_primary_tns(tns_names_list,gd_cfgDict['oraUserAction']['sql_connect_string'],gd_cfgDict['oraUserAction']['sql_database_role'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_debug)
-        queryResult = t.implement_sql_action(gd_cfgDict['oraUserAction']['sql_connect_string']+tns_name,gd_cfgDict['oraUserAction'][l_action]['user_sql_implement'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_action,tns_name,l_debug)
+        queryResult = t.implement_sql_action(gd_cfgDict['oraUserAction']['sql_connect_string'],gd_cfgDict['oraUserAction'][l_action]['user_sql_implement'] ,gd_cfgDict['oraUserAction']['oracle_home'],gd_cfgDict['oraUserAction']['tns_admin'],l_action,tns_name,l_debug)
 
-m.message ("INFO : main.3, SUCCESSFULLY COMPLETED : {0} ".format(datetime.now().time()),l_debug)
+m.message ("INFO : main.3, SUCCESSFULLY COMPLETED ",l_debug)
 #

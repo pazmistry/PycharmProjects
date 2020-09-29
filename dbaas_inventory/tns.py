@@ -1,7 +1,7 @@
 
 ############################################
 #        $Author: pmistry $                     $RCSfile: tns.py,v $
-#        $Date: 2020/09/25 22:42:33 $           $Revision: 1.6 $         Python 2.7
+#        $Date: 2020/09/29 21:13:48 $           $Revision: 1.7 $         Python 2.7
 ############################################
 
 import message as m
@@ -38,19 +38,27 @@ def get_tns_entries(p_tns_pattern, p_tns_file, p_debug):
 
 def get_primary_tns(p_tns_names_list, p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin,p_debug):
     l_tns_name=''
+    isValid=True
     m.message("DEBUG: get_primary_tns.1, {0}".format(p_tns_names_list),p_debug)
     for tns_name in p_tns_names_list:
-        queryResult, errorMessage = exec_sql(p_connectString + tns_name, p_sqlCommand,p_oracle_home, p_tns_admin,p_debug)
-        m.message("DEBUG: get_primary_tns.2, {0}".format(queryResult.strip()),p_debug)
-        m.message("DEBUG: get_primary_tns.3, {0}".format(errorMessage),p_debug)
-        if queryResult.strip() == 'PRIMARY' and 'ORA-' not in queryResult and 'ORA-' not in errorMessage:
+        queryResult, errorMessage = exec_sql(p_connectString.format(tns_name), p_sqlCommand,p_oracle_home, p_tns_admin,p_debug)
+        #m.message("DEBUG: get_primary_tns.2, queryResult:{0}".format(queryResult.strip()),p_debug)
+        if 'ORA-' in queryResult.strip():
+            print("ERROR: get_primary_tns.2, queryResult:{0}".format(queryResult.strip()))
+            exit(1)
+        #m.message("DEBUG: get_primary_tns.3, errorMessage:{0}".format(errorMessage.strip()),p_debug)
+        if 'ORA-' in errorMessage.strip():
+            print("ERROR: get_primary_tns.3, errorMessage:{0}".format(errorMessage.strip()))
+            exit(1)
+        if queryResult.strip() == 'PRIMARY':
             l_tns_name = tns_name
-            m.message("DEBUG: get_primary_tns.4, {0}".format(l_tns_name),p_debug)
+            m.message("DEBUG: get_primary_tns.4, found primary:{0}".format(l_tns_name),p_debug)
+
     if l_tns_name is not None and l_tns_name != "" and l_tns_name:
-        m.message("INFO : get_primary_tns.5, {0}".format(l_tns_name),p_debug)
+        m.message("INFO : get_primary_tns.5, returning primary tns{0}".format(l_tns_name),p_debug)
         return l_tns_name
     else:
-        print "ERROR: get_primary_tns.6 : {0}  no primary ".format(l_tns_name)
+        print "ERROR: get_primary_tns.6 : {0}  no primary found".format(l_tns_name)
         exit(1)
 
 def get_tns_role(p_tns_names_list, p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin,p_debug):
@@ -120,9 +128,10 @@ def exec_sql(p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin,p_debug):
 def implement_sql_action(p_connectString, p_sqlCommand ,p_oracle_home, p_tns_admin, p_action, p_tns_name,p_debug):
         ''' submit sql to be executed and capture and return results changed to allow tns injection for sysdba'''
         isValid = True
+        m.message("DEBUG: implement_sql_action.1, started {0}".format(p_sqlCommand), p_debug)
         queryResult, errorMessage = exec_sql(p_connectString.format(p_tns_name), p_sqlCommand,p_oracle_home, p_tns_admin, p_debug)
-        m.message("DEBUG: implement_sql_action.1, {0}".format(queryResult.strip() ), p_debug)
-        m.message("DEBUG: implement_sql_action.2, {0}".format(errorMessage.strip()), p_debug)
+        m.message("DEBUG: implement_sql_action.2, {0}".format(queryResult.strip()), p_debug)
+        m.message("DEBUG: implement_sql_action.3, {0}".format(errorMessage.strip()), p_debug)
         for row in queryResult.strip():
             if 'ORA' in row:
                 isValid = False
@@ -132,9 +141,9 @@ def implement_sql_action(p_connectString, p_sqlCommand ,p_oracle_home, p_tns_adm
         if isValid == False or 'ORA-' in errorMessage.strip() or 'ORA-' in queryResult.strip():
             isValid = False
         if isValid == False:
-            print "ERROR: implement_sql_action.3, {0} : {1}: {2}".format(p_tns_name,p_action, queryResult + errorMessage)
+            print "ERROR: implement_sql_action.4, {0} : {1}: {2}".format(p_tns_name,p_action, queryResult + errorMessage)
             exit(1)
         else:
             #m.message("INFO : implement_sql_action.4, {0} {1}: {2}".format(p_tns_name,p_action,queryResult.strip()), p_debug)
-            print("INFO : implement_sql_action.4, {0} {1}: {2}".format(p_tns_name,p_action,queryResult.strip()))
+            print("INFO : implement_sql_action.5, {0} {1}: {2}".format(p_tns_name,p_action,queryResult.strip()))
             return queryResult.strip()
