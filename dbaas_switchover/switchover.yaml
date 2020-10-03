@@ -1,0 +1,10 @@
+---
+  u01_size_gb: 10
+  tmp_size_gb: 1
+  oracle_base: /u01/app/oracle/
+  oracle_home: /u01/app/oracle/product/version/db_1
+  ld_library_path: "{{ oracle_home }}/lib"
+  tmp_base: /tmp
+  oratab_name: /etc/oratab
+  script_dir: /u01/app/oracle/scripts
+...

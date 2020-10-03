@@ -1,0 +1,32 @@
+---
+#main
+# role for standby_switchover actions
+
+# convert global variables to local variables
+# restart the dataabse
+# wait util online
+# check status
+
+- name: main 1. variables exist check
+  fail: msg="{{ item }} is not defined"
+  when: "{{ item }} is not defined"
+  tags:
+     - always
+  with_items:
+    - u01_size_gb
+    - tmp_size_gb
+    - oracle_base
+    - oracle_home
+    - ld_library_path
+    - tmp_base
+    - oratab_name
+    - script_dir
+    - sid_pattern
+    - db_unique_name
+
+- include: validation.yml
+- include: db_checks.yml
+- include: db_restart.yml
+
+
+...

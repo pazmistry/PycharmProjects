@@ -1,0 +1,6 @@
+ansible-playbook -i hosts.ini  --tags precheck delme.yml
+ansible-playbook -i hosts.ini  --extra-vars "@switchover.yaml" --extra-vars "@cdb_dc1_dc2.yaml" --tags precheck delme.yml  --syntax-check
+
+cd /Users/pmistry/PycharmProjects/dbaas_switchover
+
+ansible-playbook -i hosts.ini  --extra-vars "@cdb_dc1_dc2.yaml" --tags precheck  switch.yml --syntax-check

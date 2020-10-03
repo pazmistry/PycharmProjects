@@ -1,0 +1,15 @@
+---
+#main
+# vars file for standby_switchover
+  u01_size_gb: 3
+  tmp_size_gb: 1
+  oracle_base: /u01
+  oracle_home: /u01/app/oracle/product/version/db_1
+  tmp_base: /tmp
+  oratab_name: /etc/oratab
+  script_dir: /u01/app/oracle/scripts
+  db_unique_name: template
+  ld_library_path: "{{ oracle_home }}/lib"
+  min_restart_time_mins: 30
+
+...

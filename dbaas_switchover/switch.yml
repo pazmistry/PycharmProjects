@@ -1,0 +1,13 @@
+---
+#ansible-playbook -i hosts.ini  --extra-vars "@cdb_dc1_dc2.yaml" --tags precheck  switch.yml --syntax-check
+# --extra-vars "sid_pattern=cdb other_variable=foo"
+- name: Enable switchover of an oracle database
+  hosts: standby_host
+  remote_user: oracle
+  gather_facts: false
+  vars:
+    standby_sid_pattern: CDB
+    sid_pattern: CDB
+
+  roles:
+    - standby

@@ -1,0 +1,5 @@
+---
+  domain: localdomain
+  sid_pattern: cdb
+  is_rac: "no"
+...

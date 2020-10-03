@@ -8,12 +8,12 @@
     tmp_size_gb: 1
     oracle_base: /u01/app/oracle/
     oracle_home: /u01/app/oracle/product/version/db_1
-    ld_library_path: "{{ oracle_home }}/lib"
     tmp_base: /tmp
     oratab_name: /etc/oratab
     script_dir: /u01/app/oracle/scripts
-    sid_pattern: orcl
     db_unique_name: template
+    ld_library_path: "{{ oracle_home }}/lib"
+    #  sid_pattern: orcl
     #  remote_user: oracle
 
 
@@ -23,7 +23,7 @@
 # check status
 
   tasks:
-  - name: variables  check
+  - name: variables exist check
     fail: msg="{{ item }} is not defined"
     when: "{{ item }} is not defined"
     tags:

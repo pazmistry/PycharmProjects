@@ -1,0 +1,19 @@
+---
+# db_restart.yml
+# Undertake basic db validation
+
+- name: "db_restart 1. {{ standby_oracle_sid }}"
+  script:
+    cmd: "./restart_db.sh {{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} > ./restart_db{{ oracle_sid }} 2>&1"
+    chdir: "{{ script_dir }}"
+  register: db_restarted
+  failed_when: db_restarted.rc >= 1
+  debugger: on_failed
+#  when: "{{ restart_time_mins }} > {{ min_restart_time_mins }}"
+  tags:
+    - test
+    - precheck
+
+
+
+...

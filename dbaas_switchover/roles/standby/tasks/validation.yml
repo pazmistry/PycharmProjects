@@ -1,0 +1,22 @@
+---
+# validation.yml
+# Undertake basic environment validation
+
+- name: "validation 1. check free disk space {{ oracle_base }}"
+  action: shell df -k {{ oracle_base }} | awk 'END { print $4 }'
+  register: u01size
+  failed_when: u01size.stdout|int <  u01_size_gb  * 1024 * 1024
+  changed_when: False
+  tags:
+    - precheck
+
+- name: "validation 2. check free disk space {{ tmp_base }}"
+  action: shell df -k {{ tmp_base }} | awk 'END { print $4 }'
+  register: tmpsize
+  failed_when: tmpsize.stdout|int < tmp_size_gb * 1024 * 1024
+  changed_when: False
+  tags:
+    - precheck
+
+
+...
