@@ -1,18 +1,22 @@
 ---
 # db_restart.yml
 # Undertake basic db validation
-
-- name: "db_restart 1. {{ standby_oracle_sid }}"
-  script:
-    cmd: "./restart_db.sh {{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} > ./restart_db{{ oracle_sid }} 2>&1"
-    chdir: "{{ script_dir }}"
-  register: db_restarted
-  failed_when: db_restarted.rc >= 1
-  debugger: on_failed
+#    cmd: "./restart_db.sh {{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} | tee {{ script_dir }}/restart_db_{{ oracle_sid }}.log "
+#  debugger: on_failed
+#  debugger: always
 #  when: "{{ restart_time_mins }} > {{ min_restart_time_mins }}"
+#     cmd: ./test.sh {{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} | tee delme.log
+- name: db_restart 1. "{{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} "
+  script:
+    cmd: ./restart_db.sh {{ standby_oracle_sid }} {{ db_unique_name }} {{ is_rac }} | tee ./restart_db_{{ standby_oracle_sid }}.log
+    chdir: "{{ script_dir }}"
+  register: var_db_restarted
+  failed_when: var_db_restarted.rc >= 1
+  when: restart_time_mins | int  >=  min_restart_time_mins | int
   tags:
     - test
     - precheck
+
 
 
 
